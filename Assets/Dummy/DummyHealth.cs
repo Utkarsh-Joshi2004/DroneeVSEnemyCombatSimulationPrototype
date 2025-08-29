@@ -1,7 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 
+[System.Diagnostics.DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
 public class EnemyHealth : MonoBehaviour
 {
+    [Header("Health Settings")]
     public int maxHealth = 100;
     private int currentHealth;
 
@@ -23,8 +25,12 @@ public class EnemyHealth : MonoBehaviour
 
     void Die()
     {
-        // You can add explosion effects or animations here
         Debug.Log(gameObject.name + " destroyed!");
-        Destroy(gameObject);
+        Destroy(gameObject); // 💥 enemy disappears immediately
+    }
+
+    private string GetDebuggerDisplay()
+    {
+        return ToString();
     }
 }

@@ -154,7 +154,7 @@ MonoBehaviour:
   speed: 25
   lifeTime: 5
   damage: 25
-  explosionEffect: {fileID: 4672586700592258486}
+  explosionEffect: {fileID: 0}
 --- !u!198 &-911725666523547523
 ParticleSystem:
   m_ObjectHideFlags: 0

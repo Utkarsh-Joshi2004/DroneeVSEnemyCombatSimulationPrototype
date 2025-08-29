@@ -5,12 +5,11 @@ public class DroneController : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float ascendSpeed = 5f;
-    public float rotationSpeed = 100f; // yaw rotation speed
+    public float rotationSpeed = 100f; // yaw rotation speed with A/D
 
     [Header("Missile Settings")]
     public GameObject missilePrefab;
     public Transform firePoint;
-    public float missileForce = 20f;
 
     [Header("Effects")]
     public ParticleSystem fireEffect;
@@ -21,7 +20,7 @@ public class DroneController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.useGravity = false; // keep drone hovering
+        rb.useGravity = false; // drone hovers
     }
 
     void Update()
@@ -65,10 +64,18 @@ public class DroneController : MonoBehaviour
     {
         if (missilePrefab != null && firePoint != null)
         {
+            // Spawn missile
             GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
-            Rigidbody missileRb = missile.GetComponent<Rigidbody>();
-            missileRb.AddForce(firePoint.forward * missileForce, ForceMode.VelocityChange);
 
+            // --- FIX: Ignore collision with drone ---
+            Collider droneCollider = GetComponent<Collider>();
+            Collider missileCollider = missile.GetComponent<Collider>();
+            if (droneCollider != null && missileCollider != null)
+            {
+                Physics.IgnoreCollision(missileCollider, droneCollider);
+            }
+
+            // Play effects
             if (fireEffect != null) fireEffect.Play();
             if (fireSound != null) fireSound.Play();
         }
