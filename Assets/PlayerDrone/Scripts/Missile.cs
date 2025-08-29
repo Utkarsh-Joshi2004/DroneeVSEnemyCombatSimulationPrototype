@@ -2,50 +2,32 @@
 
 public class Missile : MonoBehaviour
 {
-    [Header("Missile Settings")]
-    public float speed = 25f;
-    public float lifeTime = 5f;
     public int damage = 25;
+    public float speed = 40f;
+    public float lifeTime = 5f;
 
-    [Header("Effects")]
-    public GameObject explosionEffect;
+    private Rigidbody rb;
 
     void Start()
     {
-        Destroy(gameObject, lifeTime);
-    }
+        rb = GetComponent<Rigidbody>();
+        rb.linearVelocity = transform.forward * speed;
 
-    void Update()
-    {
-        // Always fly forward
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        Destroy(gameObject, lifeTime);
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        // ✅ Ignore collision with drone
-        if (collision.collider.CompareTag("Player"))
-            return;
-
-        // ✅ Check if hit enemy
         if (collision.collider.CompareTag("Enemy"))
         {
-            Debug.Log("Missile hit enemy: " + collision.collider.name);
-
             EnemyHealth enemy = collision.collider.GetComponent<EnemyHealth>();
             if (enemy != null)
             {
                 enemy.TakeDamage(damage);
+                Debug.Log("Missile hit enemy!");
             }
         }
 
-        // Spawn explosion effect
-        if (explosionEffect != null)
-        {
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
-        }
-
-        // Destroy missile on any impact
-        Destroy(gameObject);
+        Destroy(gameObject); // missile disappears after hit
     }
 }

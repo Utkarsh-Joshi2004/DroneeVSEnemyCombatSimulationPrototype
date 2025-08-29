@@ -151,10 +151,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 292d2f3d40541a14f88894d8d27dcf80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 25
-  lifeTime: 5
   damage: 25
-  explosionEffect: {fileID: 0}
+  speed: 50
+  lifeTime: 5
 --- !u!198 &-911725666523547523
 ParticleSystem:
   m_ObjectHideFlags: 0
