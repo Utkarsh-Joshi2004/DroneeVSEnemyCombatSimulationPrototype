@@ -2,33 +2,40 @@ using UnityEngine;
 
 public class Missile : MonoBehaviour
 {
-    public float explosionRadius = 5f;
-    public float explosionForce = 1000f;
+    [Header("Missile Settings")]
+    public float speed = 25f;
+    public float lifeTime = 5f;
+    public int damage = 25;        // damage dealt to enemies
+
+    [Header("Effects")]
     public GameObject explosionEffect;
 
-    void OncollisionEnter(Collision collision)
+    void Start()
     {
-        Explode();
-        Destroy(gameObject);
+        Destroy(gameObject, lifeTime);
     }
 
-    void Explode()
+    void Update()
     {
-        // Explosion effect
-        if (explosionEffect )
+        // Always fly forward
+        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Check if hit an enemy
+        EnemyHealth enemy = collision.collider.GetComponent<EnemyHealth>();
+        if (enemy != null)
         {
-            Instantiate(explosionEffect, transform.position, transform.rotation);
+            enemy.TakeDamage(damage);
         }
 
-        // Apply physics force to nearby objects
-        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
-        foreach (Collider hit in colliders)
+        // Spawn explosion effect
+        if (explosionEffect != null)
         {
-            Rigidbody rb = hit.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                rb.AddExplosionForce(explosionForce, transform.position, explosionRadius);
-            }
+            Instantiate(explosionEffect, transform.position, Quaternion.identity);
         }
+
+        Destroy(gameObject);
     }
 }

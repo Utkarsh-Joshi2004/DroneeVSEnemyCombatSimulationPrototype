@@ -4,66 +4,56 @@ public class DroneController : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
-    public float ascendDescendSpeed = 5f;
-    public float rotationSpeed = 5f;
+    public float ascendSpeed = 5f;
+    public float rotationSpeed = 100f; // yaw rotation speed
 
-    [Header("Combat Settings")]
+    [Header("Missile Settings")]
     public GameObject missilePrefab;
-    public Transform missileSpawnPoint;
-    public float missileForce = 1000f;
+    public Transform firePoint;
+    public float missileForce = 20f;
 
     [Header("Effects")]
-    public ParticleSystem missileFireEffect;
-    public AudioClip missileFireSound;
+    public ParticleSystem fireEffect;
+    public AudioSource fireSound;
 
     private Rigidbody rb;
-    private AudioSource audioSource;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
-
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
+        rb.useGravity = false; // keep drone hovering
     }
 
     void Update()
     {
         HandleMovement();
-        HandleCombat();
+        HandleRotation();
+        HandleFiring();
     }
 
     void HandleMovement()
     {
-        // Get input
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        // Forward/backward
+        float moveForward = Input.GetAxis("Vertical") * moveSpeed;
+
+        // Ascend/Descend
         float ascend = 0f;
+        if (Input.GetKey(KeyCode.E)) ascend = ascendSpeed;
+        if (Input.GetKey(KeyCode.Q)) ascend = -ascendSpeed;
 
-        if (Input.GetKey(KeyCode.E)) ascend = 1f;
-        if (Input.GetKey(KeyCode.Q)) ascend = -1f;
-
-        // Calculate movement vectors
-        Vector3 moveDirection = new Vector3(horizontal, 0, vertical).normalized;
-        Vector3 worldMove = transform.TransformDirection(moveDirection) * moveSpeed;
-        Vector3 verticalMove = Vector3.up * ascend * ascendDescendSpeed;
-
-        // Apply movement
-        Vector3 movement = worldMove + verticalMove;
-        rb.linearVelocity = new Vector3(movement.x, rb.linearVelocity.y + verticalMove.y, movement.z);
-
-        // Smooth rotation toward movement direction
-        if (moveDirection.magnitude > 0.1f)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
-        }
+        // Apply movement (in drone's forward direction)
+        Vector3 move = transform.forward * moveForward + Vector3.up * ascend;
+        rb.linearVelocity = move;
     }
 
-    void HandleCombat()
+    void HandleRotation()
+    {
+        // Rotate left/right with A/D
+        float rotation = Input.GetAxis("Horizontal") * rotationSpeed * Time.deltaTime;
+        transform.Rotate(Vector3.up * rotation);
+    }
+
+    void HandleFiring()
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -73,28 +63,14 @@ public class DroneController : MonoBehaviour
 
     void FireMissile()
     {
-        if (missilePrefab && missileSpawnPoint)
+        if (missilePrefab != null && firePoint != null)
         {
-            // Instantiate missile
-            GameObject missile = Instantiate(missilePrefab, missileSpawnPoint.position, missileSpawnPoint.rotation);
+            GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
             Rigidbody missileRb = missile.GetComponent<Rigidbody>();
+            missileRb.AddForce(firePoint.forward * missileForce, ForceMode.VelocityChange);
 
-            // Apply force
-            if (missileRb)
-            {
-                missileRb.AddForce(missileSpawnPoint.forward * missileForce);
-            }
-
-            // Play effects
-            if (missileFireEffect)
-            {
-                missileFireEffect.Play();
-            }
-
-            if (missileFireSound && audioSource)
-            {
-                audioSource.PlayOneShot(missileFireSound);
-            }
+            if (fireEffect != null) fireEffect.Play();
+            if (fireSound != null) fireSound.Play();
         }
     }
 }
