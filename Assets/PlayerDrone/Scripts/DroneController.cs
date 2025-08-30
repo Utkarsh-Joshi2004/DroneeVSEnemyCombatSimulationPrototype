@@ -5,7 +5,7 @@ public class DroneController : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float ascendSpeed = 5f;
-    public float rotationSpeed = 100f; // yaw rotation speed with A/D
+    public float rotationSpeed = 100f; 
 
     [Header("Missile Settings")]
     public GameObject missilePrefab;
@@ -67,7 +67,7 @@ public class DroneController : MonoBehaviour
             // Spawn missile
             GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
 
-            // --- FIX: Ignore collision with drone ---
+            //Ignore collision with drone 
             Collider droneCollider = GetComponent<Collider>();
             Collider missileCollider = missile.GetComponent<Collider>();
             if (droneCollider != null && missileCollider != null)

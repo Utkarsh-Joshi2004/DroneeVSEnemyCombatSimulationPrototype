@@ -7,7 +7,7 @@ public class Bullet : MonoBehaviour
     public float speed = 30f;
 
     private Rigidbody rb;
-    private GameObject shooter; // who fired this bullet
+    private GameObject shooter; 
 
     // Called by the shooter right after instantiation
     public void SetShooter(GameObject owner)
@@ -50,11 +50,11 @@ public class Bullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // 🚫 Ignore the shooter completely
+        //Ignore the shooter completely
         if (shooter != null && (other.gameObject == shooter || other.transform.IsChildOf(shooter.transform)))
             return;
 
-        // ✅ Only damage Drone
+        //Only damage Drone
         DroneHealth drone = other.GetComponent<DroneHealth>() ?? other.GetComponentInParent<DroneHealth>();
         if (drone != null)
         {
@@ -62,7 +62,7 @@ public class Bullet : MonoBehaviour
             Debug.Log($"[Bullet] Damaged drone for {damage}");
         }
 
-        // Destroy bullet no matter what it hit
+        //Destroy bullet no matter what it hit
         Destroy(gameObject);
     }
 }

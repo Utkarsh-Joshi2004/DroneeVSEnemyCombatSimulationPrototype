@@ -9,7 +9,7 @@ public class Missile : MonoBehaviour
     public float lifetime = 5f;
 
     [Header("Explosion Effect")]
-    public ParticleSystem explosionEffectPrefab; // drag in prefab (not on missile)
+    public ParticleSystem explosionEffectPrefab; 
 
     private Rigidbody rb;
 

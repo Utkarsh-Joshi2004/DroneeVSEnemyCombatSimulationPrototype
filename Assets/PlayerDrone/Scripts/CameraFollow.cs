@@ -8,7 +8,7 @@ public class CameraFollow : MonoBehaviour
     public float rotationSmoothSpeed = 3f;
 
     [Header("Tilt Settings")]
-    public float tiltAmount = 10f;   // how much camera tilts on turns
+    public float tiltAmount = 10f;   
     public float tiltSmooth = 5f;
 
     private Transform target;
@@ -32,15 +32,15 @@ public class CameraFollow : MonoBehaviour
     {
         if (!target) return;
 
-        // --- Smooth Position ---
+        //Smooth Position 
         Vector3 desiredPosition = target.TransformPoint(offset);
         transform.position = Vector3.Lerp(transform.position, desiredPosition, positionSmoothSpeed * Time.deltaTime);
 
-        // --- Smooth Rotation ---
+        //Smooth Rotation 
         Quaternion desiredRotation = Quaternion.LookRotation(target.position - transform.position, Vector3.up);
         transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotationSmoothSpeed * Time.deltaTime);
 
-        // --- Camera Tilt (leans on left/right input) ---
+        //Camera Tilt (leans on left/right input) 
         float horizontalInput = Input.GetAxis("Horizontal"); // A/D or Left/Right arrows
         float targetTilt = -horizontalInput * tiltAmount;    // negative so it tilts the right way
         currentTilt = Mathf.Lerp(currentTilt, targetTilt, Time.deltaTime * tiltSmooth);

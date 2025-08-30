@@ -3,12 +3,12 @@ using UnityEngine;
 public class DummyTarget : MonoBehaviour
 {
     [Header("Respawn Settings")]
-    public float respawnDelay = 2f;          // Time before respawn
-    public Vector3 respawnAreaCenter;        // Center of respawn area
-    public Vector3 respawnAreaSize = new Vector3(10, 0, 10); // Size of respawn box
+    public float respawnDelay = 2f;          
+    public Vector3 respawnAreaCenter;        
+    public Vector3 respawnAreaSize = new Vector3(10, 0, 10); 
 
-    private Quaternion initialRotation;      // Keep original rotation
-    private GameObject dummyInstance;        // Reference to the active dummy
+    private Quaternion initialRotation;      
+    private GameObject dummyInstance;        
     private bool isDestroyed = false;
 
     void Start()
@@ -62,7 +62,7 @@ public class DummyTarget : MonoBehaviour
         isDestroyed = false;
     }
 
-    // (Optional) Draw respawn area in Scene view
+    //Draw respawn area in Scene view
     void OnDrawGizmosSelected()
     {
         Gizmos.color = new Color(0, 1, 0, 0.3f);

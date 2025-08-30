@@ -8,7 +8,7 @@ public class DroneHealth : MonoBehaviour
     int currentHealth;
 
     [Header("Death")]
-    public float quitDelaySeconds = 2f;   // delay before quitting
+    public float quitDelaySeconds = 2f;   
 
     void Start()
     {

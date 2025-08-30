@@ -11,8 +11,8 @@ public class EnemyAI : MonoBehaviour
 
     [Header("References")]
     public GameObject bulletPrefab;
-    public Transform firePoint;   // 👈 child of Enemy
-    public Transform drone;       // assign Drone in inspector
+    public Transform firePoint;   
+    public Transform drone;       
 
     private NavMeshAgent agent;
     private int currentWaypoint = 0;
@@ -81,14 +81,14 @@ public class EnemyAI : MonoBehaviour
     {
         if (bulletPrefab == null || firePoint == null || drone == null) return;
 
-        // ✅ Calculate bullet direction toward drone
+        //Calculate bullet direction toward drone
         Vector3 dir = (drone.position - firePoint.position).normalized;
         Quaternion lookRot = Quaternion.LookRotation(dir);
 
-        // ✅ Spawn bullet at firePoint position, but rotated toward drone
+        //Spawn bullet at firePoint position, but rotated toward drone
         GameObject bulletObj = Instantiate(bulletPrefab, firePoint.transform.position, lookRot);
 
-        // Pass shooter reference to bullet (to ignore self-collision)
+        //Pass shooter reference to bullet (to ignore self-collision)
         Bullet bullet = bulletObj.GetComponent<Bullet>();
         if (bullet != null)
             bullet.SetShooter(gameObject);
@@ -96,7 +96,6 @@ public class EnemyAI : MonoBehaviour
         Debug.Log("[EnemyAI] Enemy fired at drone!");
     }
 
-    // ✅ Debug Gizmos
     void OnDrawGizmosSelected()
     {
         // Draw detection radius
