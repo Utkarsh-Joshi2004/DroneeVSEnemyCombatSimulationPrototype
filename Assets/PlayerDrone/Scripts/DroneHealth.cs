@@ -3,8 +3,12 @@ using System.Collections;
 
 public class DroneHealth : MonoBehaviour
 {
+    [Header("Health")]
     public int maxHealth = 100;
-    private int currentHealth;
+    int currentHealth;
+
+    [Header("Death")]
+    public float quitDelaySeconds = 2f;   // delay before quitting
 
     void Start()
     {
@@ -14,20 +18,19 @@ public class DroneHealth : MonoBehaviour
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
-        Debug.Log("Drone took " + amount + " damage. HP: " + currentHealth);
+        Debug.Log($"[DroneHealth] Took {amount} damage. HP: {currentHealth}");
 
         if (currentHealth <= 0)
         {
-            StartCoroutine(Die());
+            StartCoroutine(DieAndQuit());
         }
     }
 
-    IEnumerator Die()
+    IEnumerator DieAndQuit()
     {
-        Debug.Log("Drone destroyed! Quitting game in 2 seconds...");
+        Debug.Log("[DroneHealth] Drone destroyed. Quitting…");
         gameObject.SetActive(false);
-
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(quitDelaySeconds);
 
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;

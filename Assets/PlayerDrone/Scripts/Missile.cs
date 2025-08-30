@@ -2,9 +2,14 @@
 
 public class Missile : MonoBehaviour
 {
-    public int damage = 25;
-    public float speed = 40f;
-    public float lifeTime = 5f;
+    public GameObject explosionPrefab;
+
+    [Header("Missile Settings")]
+    public float speed = 50f;
+    public float lifetime = 5f;
+
+    [Header("Explosion Effect")]
+    public ParticleSystem explosionEffectPrefab; // drag in prefab (not on missile)
 
     private Rigidbody rb;
 
@@ -13,21 +18,32 @@ public class Missile : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.linearVelocity = transform.forward * speed;
 
-        Destroy(gameObject, lifeTime);
+        // Destroy after lifetime if it doesn't hit anything
+        Destroy(gameObject, lifetime);
     }
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.collider.CompareTag("Enemy"))
+        // If collided with enemy
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            EnemyHealth enemy = collision.collider.GetComponent<EnemyHealth>();
-            if (enemy != null)
-            {
-                enemy.TakeDamage(damage);
-                Debug.Log("Missile hit enemy!");
-            }
+            // Delay enemy destruction slightly so explosion is visible
+            Destroy(collision.gameObject, 0.2f);
+            Explosion();
         }
 
-        Destroy(gameObject); // missile disappears after hit
+        else
+        {
+            Explosion();
+        }
+
+            // Destroy missile immediately on impact
+            Destroy(gameObject);
+    }
+
+    void Explosion()
+    {
+        GameObject Explosion = Instantiate(explosionPrefab, gameObject.transform.position, gameObject.transform.rotation);
+        Destroy(Explosion,1f);
     }
 }

@@ -2,29 +2,17 @@
 
 public class EnemyHealth : MonoBehaviour
 {
-    [Header("Enemy Settings")]
-    public int maxHealth = 50;
-    private int currentHealth;
-
-    void Start()
-    {
-        currentHealth = maxHealth;
-    }
+    public int health = 100;
 
     public void TakeDamage(int amount)
     {
-        currentHealth -= amount;
-        Debug.Log(gameObject.name + " took " + amount + " damage. HP: " + currentHealth);
+        health -= amount;
+        Debug.Log("[EnemyHealth] Took damage, health now: " + health);
 
-        if (currentHealth <= 0)
+        if (health <= 0)
         {
-            Die();
+            Debug.Log("[EnemyHealth] Enemy dead!");
+            Destroy(gameObject);
         }
-    }
-
-    void Die()
-    {
-        Debug.Log(gameObject.name + " has been destroyed!");
-        Destroy(gameObject); // ✅ disappear from scene
     }
 }

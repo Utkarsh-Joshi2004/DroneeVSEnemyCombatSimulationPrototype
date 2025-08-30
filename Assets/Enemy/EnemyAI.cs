@@ -1,75 +1,69 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 
-[RequireComponent(typeof(SphereCollider))]
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Patrol Settings")]
+    [Header("AI Settings")]
     public Transform[] waypoints;
-    private int currentWaypoint = 0;
-    private NavMeshAgent agent;
-
-    [Header("Detection Settings")]
     public float detectionRange = 20f;
     public float fireRate = 1.5f;
-    private float fireCooldown = 0f;
+    public float bodyRotationSpeed = 3f;
 
-    [Header("Attack Settings")]
+    [Header("References")]
     public GameObject bulletPrefab;
-    public Transform firePoint;
-    public float bulletSpeed = 30f;
-    public int bulletDamage = 10;
+    public Transform firePoint;   // 👈 child of Enemy
+    public Transform drone;       // assign Drone in inspector
 
-    private Transform player;
-    private bool playerDetected = false;
-
-    private SphereCollider detectionCollider;
+    private NavMeshAgent agent;
+    private int currentWaypoint = 0;
+    private float fireCooldown = 0f;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-
-        // ✅ Setup detection sphere
-        detectionCollider = GetComponent<SphereCollider>();
-        detectionCollider.isTrigger = true;
-        detectionCollider.radius = detectionRange;
 
         if (waypoints.Length > 0)
         {
-            agent.SetDestination(waypoints[currentWaypoint].position);
+            agent.destination = waypoints[0].position;
         }
     }
 
     void Update()
     {
-        if (!playerDetected)
+        if (drone == null) return;
+
+        float distance = Vector3.Distance(transform.position, drone.position);
+
+        if (distance <= detectionRange)
         {
-            Patrol();
+            // Stop patrol when attacking
+            agent.isStopped = true;
+
+            // Rotate enemy body horizontally toward drone
+            Vector3 bodyDir = (drone.position - transform.position).normalized;
+            bodyDir.y = 0;
+            if (bodyDir.sqrMagnitude > 0.001f)
+            {
+                Quaternion targetRot = Quaternion.LookRotation(bodyDir);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, bodyRotationSpeed * Time.deltaTime);
+            }
+
+            // Fire bullets
+            if (fireCooldown <= 0f)
+            {
+                Shoot();
+                fireCooldown = fireRate;
+            }
         }
         else
         {
-            AttackPlayer();
-        }
-    }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("Enemy detected the drone!");
-            playerDetected = true;
-        }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            Debug.Log("Drone left detection zone!");
-            playerDetected = false;
+            // Resume patrol
             agent.isStopped = false;
+            Patrol();
         }
+
+        if (fireCooldown > 0f)
+            fireCooldown -= Time.deltaTime;
     }
 
     void Patrol()
@@ -79,56 +73,41 @@ public class EnemyAI : MonoBehaviour
         if (!agent.pathPending && agent.remainingDistance < 0.5f)
         {
             currentWaypoint = (currentWaypoint + 1) % waypoints.Length;
-            agent.SetDestination(waypoints[currentWaypoint].position);
+            agent.destination = waypoints[currentWaypoint].position;
         }
     }
 
-    void AttackPlayer()
+    void Shoot()
     {
-        if (player == null) return;
+        if (bulletPrefab == null || firePoint == null || drone == null) return;
 
-        if (!agent.isStopped)
-            agent.isStopped = true;
+        // ✅ Calculate bullet direction toward drone
+        Vector3 dir = (drone.position - firePoint.position).normalized;
+        Quaternion lookRot = Quaternion.LookRotation(dir);
 
-        // ✅ Face the drone
-        Vector3 dir = (player.position - transform.position).normalized;
-        dir.y = 0;
-        if (dir != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(dir);
+        // ✅ Spawn bullet at firePoint position, but rotated toward drone
+        GameObject bulletObj = Instantiate(bulletPrefab, firePoint.transform.position, lookRot);
 
-        // ✅ Shoot
-        fireCooldown -= Time.deltaTime;
-        if (fireCooldown <= 0f)
-        {
-            FireBullet();
-            fireCooldown = fireRate;
-        }
+        // Pass shooter reference to bullet (to ignore self-collision)
+        Bullet bullet = bulletObj.GetComponent<Bullet>();
+        if (bullet != null)
+            bullet.SetShooter(gameObject);
+
+        Debug.Log("[EnemyAI] Enemy fired at drone!");
     }
 
-    void FireBullet()
-    {
-        if (bulletPrefab == null || firePoint == null) return;
-
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-        Rigidbody rb = bullet.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.linearVelocity = firePoint.forward * bulletSpeed;
-        }
-
-        Bullet bulletScript = bullet.GetComponent<Bullet>();
-        if (bulletScript != null)
-        {
-            bulletScript.damage = bulletDamage;
-        }
-
-        Debug.Log("Enemy fired at drone!");
-    }
-
-    // ✅ Draw detection zone in Scene view
+    // ✅ Debug Gizmos
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.red;
+        // Draw detection radius
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+
+        // Draw fire direction toward drone
+        if (firePoint != null && drone != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(firePoint.position, drone.position);
+        }
     }
 }
