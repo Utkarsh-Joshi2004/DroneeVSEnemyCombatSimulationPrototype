@@ -9,7 +9,7 @@ public class Missile : MonoBehaviour
     public float lifetime = 5f;
 
     [Header("Explosion Effect")]
-    public ParticleSystem explosionEffectPrefab; 
+    public ParticleSystem explosionEffectPrefab;
 
     private Rigidbody rb;
 
@@ -37,13 +37,13 @@ public class Missile : MonoBehaviour
             Explosion();
         }
 
-            // Destroy missile immediately on impact
-            Destroy(gameObject);
+        // Destroy missile immediately on impact
+        Destroy(gameObject);
     }
 
     void Explosion()
     {
         GameObject Explosion = Instantiate(explosionPrefab, gameObject.transform.position, gameObject.transform.rotation);
-        Destroy(Explosion,1f);
+        Destroy(Explosion, 1f);
     }
 }

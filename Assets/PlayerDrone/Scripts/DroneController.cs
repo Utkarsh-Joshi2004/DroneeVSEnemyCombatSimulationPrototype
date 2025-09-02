@@ -5,7 +5,9 @@ public class DroneController : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 10f;
     public float ascendSpeed = 5f;
-    public float rotationSpeed = 100f; 
+    public float rotationSpeed = 100f;
+    public float acceleration = 5f; // how fast drone accelerates
+    public float deceleration = 5f; // how fast drone slows down
 
     [Header("Missile Settings")]
     public GameObject missilePrefab;
@@ -16,6 +18,8 @@ public class DroneController : MonoBehaviour
     public AudioSource fireSound;
 
     private Rigidbody rb;
+    private Vector3 targetVelocity;
+    private float targetRotation;
 
     void Start()
     {
@@ -25,12 +29,17 @@ public class DroneController : MonoBehaviour
 
     void Update()
     {
-        HandleMovement();
-        HandleRotation();
+        HandleInput();
         HandleFiring();
     }
 
-    void HandleMovement()
+    void FixedUpdate()
+    {
+        ApplyMovement();
+        ApplyRotation();
+    }
+
+    void HandleInput()
     {
         // Forward/backward
         float moveForward = Input.GetAxis("Vertical") * moveSpeed;
@@ -40,16 +49,26 @@ public class DroneController : MonoBehaviour
         if (Input.GetKey(KeyCode.E)) ascend = ascendSpeed;
         if (Input.GetKey(KeyCode.Q)) ascend = -ascendSpeed;
 
-        // Apply movement (in drone's forward direction)
-        Vector3 move = transform.forward * moveForward + Vector3.up * ascend;
-        rb.linearVelocity = move;
+        // Set target velocity
+        targetVelocity = transform.forward * moveForward + Vector3.up * ascend;
+
+        // Rotation input
+        targetRotation = Input.GetAxis("Horizontal") * rotationSpeed;
     }
 
-    void HandleRotation()
+    void ApplyMovement()
     {
-        // Rotate left/right with A/D
-        float rotation = Input.GetAxis("Horizontal") * rotationSpeed * Time.deltaTime;
-        transform.Rotate(Vector3.up * rotation);
+        // Smooth velocity change instead of snapping
+        rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, targetVelocity, acceleration * Time.fixedDeltaTime);
+    }
+
+    void ApplyRotation()
+    {
+        if (Mathf.Abs(targetRotation) > 0.01f)
+        {
+            Quaternion deltaRotation = Quaternion.Euler(Vector3.up * targetRotation * Time.fixedDeltaTime);
+            rb.MoveRotation(rb.rotation * deltaRotation);
+        }
     }
 
     void HandleFiring()
@@ -67,15 +86,19 @@ public class DroneController : MonoBehaviour
             // Spawn missile
             GameObject missile = Instantiate(missilePrefab, firePoint.position, firePoint.rotation);
 
-            //Ignore collision with drone 
-            Collider droneCollider = GetComponent<Collider>();
+            // Ignore collisions with drone
+            Collider[] droneColliders = GetComponentsInChildren<Collider>();
             Collider missileCollider = missile.GetComponent<Collider>();
-            if (droneCollider != null && missileCollider != null)
+
+            if (missileCollider != null)
             {
-                Physics.IgnoreCollision(missileCollider, droneCollider);
+                foreach (Collider c in droneColliders)
+                {
+                    Physics.IgnoreCollision(missileCollider, c);
+                }
             }
 
-            // Play effects
+            // Play firing effect & sound
             if (fireEffect != null) fireEffect.Play();
             if (fireSound != null) fireSound.Play();
         }
